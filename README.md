@@ -1,14 +1,18 @@
 # Genç MMG Etkinlik Onay Platformu
 
-İl temsilcilerinin etkinlik taleplerini Genel Merkez onayına sunduğu, onay sürecini ve yanıt sürelerini takip eden Streamlit uygulaması.
+Şube başkanlarının etkinlik taleplerini Genel Merkez onayına sunduğu, onay sürecini ve yanıt sürelerini takip eden Streamlit uygulaması.
 
 ## Roller
 
 | Rol | Değer (Sheets) | Erişim |
 |---|---|---|
-| İl Temsilcisi | `Il_Temsilcisi` | Kendi ili için talep oluşturur ve takip eder |
-| Merkez Onaycı | `Merkez_Onayci` | Tüm talepleri görür, onaylar veya reddeder |
-| Yönetici | `Admin` | Tüm sayfalar, raporlar, kullanıcılar, sistem ayarları |
+| Şube Başkanı | `Sube_Baskani` | Yalnızca kendi ili: talep oluşturur, ilinin taleplerini takip eder |
+| Genel Merkez YK Üyesi | `YK_Uyesi` | Tüm illerin taleplerini ve raporları görür; onay vermez |
+| Genel Merkez Yöneticisi | `Admin` | Tüm sayfalar; talepleri onaylayan/reddeden tek rol, kullanıcılar ve sistem ayarları |
+
+Şube başkanlarının `il_kodu` değeri `core/provinces.py` içindeki illerden biri olmalıdır; aksi hâlde giriş yapamazlar. Genel Merkez hesapları için `il_kodu` `00` kullanılır.
+
+Eski sürümlerden kalan değerler otomatik eşlenir: `Il_Temsilcisi` → Şube Başkanı, `Merkez_Onayci` → YK Üyesi (onay yetkisi yalnızca yöneticilerde olduğundan). Tanınmayan rol değerine sahip hesaplar giriş yapamaz.
 
 Giriş, kayıtlı e-posta adresine gönderilen 6 haneli tek kullanımlık kodla yapılır.
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 PROVINCES: dict[str, str] = {
     "06": "Ankara",
+    "34": "İstanbul",
     "35": "İzmir",
     "77": "Yalova",
     "38": "Kayseri",

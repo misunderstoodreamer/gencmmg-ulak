@@ -158,7 +158,7 @@ def request_card(row, *, show_province: bool) -> DeltaGenerator:
             _field("Etkinlik tarihi", format_date(row.get("etkinlik_tarihi"))),
             _field("Yer", row.get("etkinlik_yeri")),
             _field("Referans sorumlu", owner),
-            _field("Temsilci", row.get("temsilci_email")),
+            _field("Talebi açan", row.get("temsilci_email")),
         ]
 
         body = f'<div class="field-grid">{"".join(fields)}</div>'

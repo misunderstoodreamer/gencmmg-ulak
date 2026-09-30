@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 import streamlit as st
 
 from core import notifications, repository, settings
-from core.domain import Role
-from core.provinces import normalize_code
+from core.domain import Role, parse_role
+from core.provinces import is_valid_province, normalize_code
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ _PENDING_KEY = "auth_pending_login"
 class SessionUser:
     email: str
     province: str
-    role: str
+    role: Role
 
     @property
     def is_admin(self) -> bool:
@@ -33,16 +33,22 @@ class SessionUser:
 
     @property
     def can_submit(self) -> bool:
-        return self.role in (Role.PROVINCE_REP, Role.ADMIN)
+        return self.role in (Role.BRANCH_PRESIDENT, Role.ADMIN)
 
     @property
     def can_review(self) -> bool:
-        return self.role in (Role.APPROVER, Role.ADMIN)
+        """Approve or reject requests."""
+        return self.role == Role.ADMIN
+
+    @property
+    def can_view_all(self) -> bool:
+        """See requests and reports of every province."""
+        return self.role in (Role.BOARD_MEMBER, Role.ADMIN)
 
     @property
     def province_scope(self) -> str | None:
         """Province filter for listings; None means all provinces."""
-        return None if self.can_review else self.province
+        return None if self.can_view_all else self.province
 
 
 @dataclass
@@ -61,6 +67,10 @@ def pending_login() -> PendingLogin | None:
     return st.session_state.get(_PENDING_KEY)
 
 
+class AccountError(ValueError):
+    """The account exists but cannot sign in; the message is shown to the user."""
+
+
 def _lookup(email: str) -> SessionUser | None:
     accounts = settings.admin_accounts() + settings.seeded_users()
     record = next((a for a in accounts if a["email"] == email), None)
@@ -68,11 +78,16 @@ def _lookup(email: str) -> SessionUser | None:
         record = repository.find_user(email)
     if record is None:
         return None
-    return SessionUser(
-        email=record["email"],
-        province=normalize_code(record["il_kodu"]),
-        role=record["rol"],
-    )
+
+    role = parse_role(record["rol"])
+    if role is None:
+        log.warning("Unknown role %r for %s", record["rol"], email)
+        raise AccountError("Hesabınıza geçerli bir rol atanmamış. Lütfen yöneticiye başvurun.")
+    province = normalize_code(record["il_kodu"])
+    if role == Role.BRANCH_PRESIDENT and not is_valid_province(province):
+        log.warning("Branch president %s has invalid province %r", email, province)
+        raise AccountError("Hesabınıza geçerli bir şube ili atanmamış. Lütfen yöneticiye başvurun.")
+    return SessionUser(email=record["email"], province=province, role=role)
 
 
 def mask_email(email: str) -> str:
@@ -92,6 +107,8 @@ def request_login_code(email: str) -> tuple[bool, str]:
         user = _lookup(email)
     except repository.RepositoryError:
         return False, "Kullanıcı listesine şu an erişilemiyor. Lütfen biraz sonra tekrar deneyin."
+    except AccountError as exc:
+        return False, str(exc)
     if user is None:
         return False, "Bu e-posta adresi sistemde kayıtlı değil."
 

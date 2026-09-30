@@ -25,15 +25,25 @@ def _pages_for(user: SessionUser) -> dict[str, list[st.Page]]:
     sections: dict[str, list[st.Page]] = {
         "": [st.Page("views/home.py", title="Genel bakış", icon=":material/space_dashboard:", default=True)],
     }
+    requests = []
     if user.can_submit:
-        sections["Talepler"] = [
-            st.Page("views/new_request.py", title="Yeni talep", icon=":material/add_circle:"),
-            st.Page("views/request_tracking.py", title="Taleplerim", icon=":material/list_alt:"),
-        ]
+        requests.append(st.Page("views/new_request.py", title="Yeni talep", icon=":material/add_circle:"))
+    requests.append(
+        st.Page(
+            "views/request_tracking.py",
+            title="Tüm talepler" if user.can_view_all else "Taleplerim",
+            icon=":material/list_alt:",
+        )
+    )
+    sections["Talepler"] = requests
+
+    headquarters = []
     if user.can_review:
-        sections["Merkez"] = [
-            st.Page("views/approval_queue.py", title="Onay havuzu", icon=":material/fact_check:"),
-        ]
+        headquarters.append(st.Page("views/approval_queue.py", title="Onay havuzu", icon=":material/fact_check:"))
+    if user.can_view_all:
+        headquarters.append(st.Page("views/reports.py", title="Raporlar", icon=":material/monitoring:"))
+    if headquarters:
+        sections["Genel Merkez"] = headquarters
     if user.is_admin:
         sections["Yönetim"] = [
             st.Page("views/admin_panel.py", title="Yönetim paneli", icon=":material/admin_panel_settings:"),

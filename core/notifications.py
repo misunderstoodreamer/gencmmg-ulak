@@ -124,7 +124,7 @@ def send_new_request_notice(record: dict) -> None:
         ("Etkinlik", record["etkinlik_adi"]),
         ("Tarih", record["etkinlik_tarihi"]),
         ("Öncelik", "Acil" if urgent else "Normal"),
-        ("Temsilci", record["temsilci_email"]),
+        ("Talebi açan", record["temsilci_email"]),
         ("Sorumlu", f'{record["sorumlu_ad_soyad"]} — {record["sorumlu_unvan"]}'),
         ("Yer", record["etkinlik_yeri"]),
         ("Plan", record["etkinlik_nasil"]),

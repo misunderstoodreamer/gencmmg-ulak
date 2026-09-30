@@ -9,8 +9,8 @@ from enum import StrEnum
 
 
 class Role(StrEnum):
-    PROVINCE_REP = "Il_Temsilcisi"
-    APPROVER = "Merkez_Onayci"
+    BRANCH_PRESIDENT = "Sube_Baskani"
+    BOARD_MEMBER = "YK_Uyesi"
     ADMIN = "Admin"
 
     @property
@@ -19,17 +19,30 @@ class Role(StrEnum):
 
 
 _ROLE_LABELS = {
-    Role.PROVINCE_REP: "İl Temsilcisi",
-    Role.APPROVER: "Merkez Onaycı",
-    Role.ADMIN: "Yönetici",
+    Role.BRANCH_PRESIDENT: "Şube Başkanı",
+    Role.BOARD_MEMBER: "Genel Merkez YK Üyesi",
+    Role.ADMIN: "Genel Merkez Yöneticisi",
+}
+
+# Values written by earlier versions. Former approvers fall back to read-only
+# board access; approval now belongs to admins only.
+_LEGACY_ROLES = {
+    "Il_Temsilcisi": Role.BRANCH_PRESIDENT,
+    "Merkez_Onayci": Role.BOARD_MEMBER,
 }
 
 
-def role_label(value: str | None) -> str:
+def parse_role(value: object) -> Role | None:
+    text = str(value or "").strip()
     try:
-        return Role(value).label
+        return Role(text)
     except ValueError:
-        return value or "-"
+        return _LEGACY_ROLES.get(text)
+
+
+def role_label(value: str | None) -> str:
+    role = parse_role(value)
+    return role.label if role else (value or "-")
 
 
 class RequestStatus(StrEnum):

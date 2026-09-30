@@ -1,26 +1,23 @@
-"""Administration: reporting, users and integrations."""
+"""Administration: users and integrations."""
 
-import altair as alt
 import pandas as pd
 import streamlit as st
 
 from core import attachments, notifications, repository, settings
 from core.auth import require_role
-from core.domain import RequestStatus, Role, role_label
-from core.provinces import province_label, province_name
-from ui.components import load_requests, overdue_count, page_header, stat_row, status_counts
+from core.domain import Role, role_label
+from core.provinces import province_label
+from ui.components import page_header, stat_row
 
 require_role(Role.ADMIN)
 
 page_header(
     "Yönetim paneli",
-    subtitle="Raporlar, kullanıcılar ve sistem bağlantıları.",
+    subtitle="Kullanıcılar ve sistem bağlantıları.",
     eyebrow="Yönetim",
 )
 
-overview_tab, requests_tab, users_tab, system_tab = st.tabs(
-    ["Genel bakış", "Talepler", "Kullanıcılar", "Sistem"]
-)
+users_tab, system_tab = st.tabs(["Kullanıcılar", "Sistem"])
 
 
 def _load_users() -> list[dict]:
@@ -33,72 +30,6 @@ def _load_users() -> list[dict]:
             st.error(f"Kullanıcı listesi okunamadı. {exc}")
     return list(users.values())
 
-
-with overview_tab:
-    df = load_requests()
-    counts = status_counts(df)
-    stat_row(
-        [
-            ("Toplam talep", len(df)),
-            ("Bekleyen", counts[RequestStatus.PENDING]),
-            ("48 saati aşan", overdue_count(df)),
-            ("Onaylanan", counts[RequestStatus.APPROVED]),
-            ("Reddedilen", counts[RequestStatus.REJECTED]),
-        ]
-    )
-
-    if not df.empty:
-        st.space("small")
-        chart_column, sla_column = st.columns([2, 1], gap="large")
-        with chart_column, st.container(border=True, key="panel-provinces"):
-            st.markdown("**İllere göre talep sayısı**")
-            by_province = (
-                df.groupby("il_kodu").size().rename("Talep").reset_index()
-                .assign(İl=lambda d: d["il_kodu"].map(province_name))
-            )
-            base = alt.Chart(by_province).encode(
-                y=alt.Y("İl:N", sort="-x", title=None,
-                        axis=alt.Axis(domain=False, ticks=False, labelPadding=10, labelColor="#475569")),
-                x=alt.X("Talep:Q", axis=None),
-            )
-            bars = base.mark_bar(color="#1d4ed8", cornerRadiusEnd=4, height=14).encode(
-                tooltip=[alt.Tooltip("İl:N"), alt.Tooltip("Talep:Q", title="Talep sayısı")]
-            )
-            labels = base.mark_text(align="left", dx=6, color="#334155", fontSize=12).encode(text="Talep:Q")
-            st.altair_chart(
-                (bars + labels)
-                .properties(height=34 * len(by_province), background="transparent")
-                .configure_view(stroke=None),
-                width="stretch",
-                theme=None,
-            )
-        with sla_column, st.container(border=True, key="panel-sla"):
-            st.markdown("**Yanıt süresi**")
-            decided = pd.to_numeric(df["sla_farki_saat"], errors="coerce").dropna()
-            if decided.empty:
-                st.caption("Henüz sonuçlanan talep yok.")
-            else:
-                for label, value in (("Ortalama", decided.mean()), ("Medyan", decided.median())):
-                    st.html(
-                        f'<div class="figure"><p class="figure-value">{value:.1f} saat</p>'
-                        f'<p class="figure-label">{label}</p></div>'
-                    )
-                st.caption(f"{len(decided)} sonuçlanan talep üzerinden.")
-
-with requests_tab:
-    df = load_requests()
-    if df.empty:
-        st.caption("Henüz talep kaydı yok.")
-    else:
-        export = df.assign(il=df["il_kodu"].map(province_label)).sort_values("talep_zamani", ascending=False)
-        st.dataframe(export, hide_index=True, width="stretch")
-        st.download_button(
-            "CSV olarak indir",
-            data=export.to_csv(index=False).encode("utf-8-sig"),
-            file_name="etkinlik_talepleri.csv",
-            mime="text/csv",
-            icon=":material/download:",
-        )
 
 with users_tab:
     users = _load_users()
@@ -179,10 +110,10 @@ with system_tab:
         st.dataframe(
             pd.DataFrame(
                 {
-                    "Sayfa": ["Yeni talep", "Taleplerim", "Onay havuzu", "Yönetim paneli"],
-                    Role.PROVINCE_REP.label: ["Evet", "Kendi ili", "—", "—"],
-                    Role.APPROVER.label: ["—", "—", "Evet", "—"],
-                    Role.ADMIN.label: ["Evet", "Tüm iller", "Evet", "Evet"],
+                    "Sayfa": ["Yeni talep", "Talepler", "Onay havuzu", "Raporlar", "Yönetim paneli"],
+                    Role.BRANCH_PRESIDENT.label: ["Kendi ili", "Kendi ili", "—", "—", "—"],
+                    Role.BOARD_MEMBER.label: ["—", "Tüm iller (salt okunur)", "—", "Evet", "—"],
+                    Role.ADMIN.label: ["Tüm iller", "Tüm iller", "Evet", "Evet", "Evet"],
                 }
             ),
             hide_index=True,

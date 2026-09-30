@@ -19,7 +19,7 @@ page_header(
 df = load_requests(scope)
 counts = status_counts(df)
 
-if user.can_review:
+if user.can_view_all:
     stat_row(
         [
             ("Bekleyen", counts[RequestStatus.PENDING]),
@@ -43,17 +43,28 @@ st.subheader("Hızlı erişim")
 
 actions = []
 if user.can_submit:
-    actions += [
-        ("views/new_request.py", "Yeni talep oluştur", "Etkinlik bilgilerini girip Genel Merkez onayına gönderin.", ":material/add_circle:"),
-        ("views/request_tracking.py", "Taleplerimi görüntüle", "Gönderilen taleplerin durumunu ve karar notlarını izleyin.", ":material/list_alt:"),
-    ]
+    actions.append(
+        ("views/new_request.py", "Yeni talep oluştur", "Etkinlik bilgilerini girip Genel Merkez onayına gönderin.", ":material/add_circle:")
+    )
+if user.can_view_all:
+    actions.append(
+        ("views/request_tracking.py", "Tüm talepler", "Tüm illerin taleplerini, durumlarını ve karar notlarını izleyin.", ":material/list_alt:")
+    )
+else:
+    actions.append(
+        ("views/request_tracking.py", "Taleplerimi görüntüle", "İlinize ait taleplerin durumunu ve karar notlarını izleyin.", ":material/list_alt:")
+    )
 if user.can_review:
     actions.append(
         ("views/approval_queue.py", "Onay havuzu", "Bekleyen talepleri değerlendirin ve karar verin.", ":material/fact_check:")
     )
+if user.can_view_all:
+    actions.append(
+        ("views/reports.py", "Raporlar", "İl bazında talep sayıları ve yanıt süreleri.", ":material/monitoring:")
+    )
 if user.is_admin:
     actions.append(
-        ("views/admin_panel.py", "Yönetim paneli", "Kullanıcılar, raporlar ve sistem bağlantıları.", ":material/admin_panel_settings:")
+        ("views/admin_panel.py", "Yönetim paneli", "Kullanıcılar ve sistem bağlantıları.", ":material/admin_panel_settings:")
     )
 
 for column, (page, title, text, icon) in zip(st.columns(len(actions)), actions):

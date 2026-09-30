@@ -19,7 +19,7 @@ from core.provinces import PROVINCES, province_label, province_names_summary
 from core.validation import MIN_PLAN_LENGTH, validate_request
 from ui.components import page_header
 
-user = require_role(Role.PROVINCE_REP, Role.ADMIN)
+user = require_role(Role.BRANCH_PRESIDENT, Role.ADMIN)
 
 _FORM_VERSION = "new_request_form_version"
 _FLASH = "new_request_flash"
@@ -85,7 +85,7 @@ with form_column, st.container(border=True, key="panel-form"):
         st.caption("Onay sürecinde Genel Merkez'in görüşeceği, etkinliği temsil eden kişi.")
         name_column, title_column = st.columns(2)
         owner_name = name_column.text_input("Ad soyad", max_chars=120)
-        owner_title = title_column.text_input("Unvan", max_chars=120, placeholder="Örn. İl Temsilcisi")
+        owner_title = title_column.text_input("Unvan", max_chars=120, placeholder="Örn. Şube Başkanı")
 
         st.markdown("##### Etkinlik planı")
         plan = st.text_area(

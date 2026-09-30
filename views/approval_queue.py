@@ -21,7 +21,7 @@ from ui.components import (
 ALL = "all"
 _FLASH = "approval_flash"
 
-user = require_role(Role.APPROVER, Role.ADMIN)
+user = require_role(Role.ADMIN)
 
 
 @st.dialog("Talebi değerlendir", width="large")
@@ -98,7 +98,7 @@ if flash := st.session_state.pop(_FLASH, None):
     request_id, status, notified = flash
     st.toast(f"{request_id} {status.lower()}.", icon=":material/check_circle:")
     if not notified:
-        st.warning(f"{request_id} için temsilciye bildirim e-postası gönderilemedi.")
+        st.warning(f"{request_id} için şube başkanına bildirim e-postası gönderilemedi.")
 
 df = load_requests()
 if df.empty:

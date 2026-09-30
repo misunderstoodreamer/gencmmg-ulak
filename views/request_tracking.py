@@ -1,4 +1,4 @@
-"""Track submitted requests: own province for representatives, all provinces for admins."""
+"""Track requests: own province for branch presidents, all provinces for headquarters."""
 
 import streamlit as st
 
@@ -9,18 +9,18 @@ from ui.components import empty_state, load_requests, page_header, request_card,
 
 ALL = "all"
 
-user = require_role(Role.PROVINCE_REP, Role.ADMIN)
+user = require_role(Role.BRANCH_PRESIDENT, Role.BOARD_MEMBER, Role.ADMIN)
 
 page_header(
-    "Taleplerim",
-    subtitle="Tüm iller" if user.is_admin else f"{province_name(user.province)} iline ait etkinlik talepleri",
+    "Tüm talepler" if user.can_view_all else "Taleplerim",
+    subtitle="Tüm iller" if user.can_view_all else f"{province_name(user.province)} iline ait etkinlik talepleri",
     eyebrow="Talepler",
 )
 
 filters = st.container(horizontal=True, vertical_alignment="center", gap="medium")
 
-province = user.province
-if user.is_admin:
+province = user.province_scope
+if user.can_view_all:
     with filters:
         province = st.selectbox(
             "İl",
@@ -34,7 +34,10 @@ if user.is_admin:
 df = load_requests(province)
 
 if df.empty:
-    empty_state("Henüz talep yok", "Oluşturduğunuz talepler burada listelenir.")
+    empty_state(
+        "Henüz talep yok",
+        "İllerden gelen talepler burada listelenir." if user.can_view_all else "Oluşturduğunuz talepler burada listelenir.",
+    )
     st.stop()
 
 counts = status_counts(df)
@@ -55,7 +58,7 @@ st.space("small")
 if visible.empty:
     empty_state("Bu durumda talep yok")
 for _, row in visible.iterrows():
-    request_card(row, show_province=user.is_admin)
+    request_card(row, show_province=user.can_view_all)
 
 with st.expander("Tablo görünümü", icon=":material/table_view:"):
     st.dataframe(visible, hide_index=True, width="stretch")
