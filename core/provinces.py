@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+# Ordered by plate code; this order is used in every province list.
 PROVINCES: dict[str, str] = {
+    "04": "Ağrı",
     "06": "Ankara",
+    "07": "Antalya",
+    "23": "Elazığ",
+    "27": "Gaziantep",
+    "33": "Mersin",
     "34": "İstanbul",
     "35": "İzmir",
-    "77": "Yalova",
     "38": "Kayseri",
+    "42": "Konya",
     "54": "Sakarya",
-    "27": "Gaziantep",
-    "23": "Elazığ",
-    "04": "Ağrı",
+    "77": "Yalova",
 }
 
 
