@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 st.set_page_config(
     page_title="Genç MMG Etkinlik Onay",
-    page_icon=str(ASSETS / "mark.svg"),
+    page_icon=str(ASSETS / "mark.png"),
     layout="wide",
 )
 apply_theme()
@@ -56,7 +56,7 @@ user = current_user()
 if user is None:
     navigation = st.navigation([st.Page("views/login.py", title="Giriş")], position="hidden")
 else:
-    st.logo(str(ASSETS / "logo.svg"), size="large", icon_image=str(ASSETS / "mark.svg"))
+    st.logo(str(ASSETS / "logo.svg"), size="large", icon_image=str(ASSETS / "mark.png"))
     navigation = st.navigation(_pages_for(user))
     sidebar_account(user, on_logout=logout)
 

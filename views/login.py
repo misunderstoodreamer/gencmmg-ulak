@@ -9,9 +9,9 @@ import streamlit as st
 from core import settings
 from core.auth import cancel_login, mask_email, pending_login, request_login_code, verify_login_code
 
-_MARK_SVG = (Path(__file__).parents[1] / "assets" / "mark.svg").read_bytes()
+_MARK_PNG = (Path(__file__).parents[1] / "assets" / "mark.png").read_bytes()
 BRAND_MARK = (
-    f'<img src="data:image/svg+xml;base64,{base64.b64encode(_MARK_SVG).decode()}" '
+    f'<img src="data:image/png;base64,{base64.b64encode(_MARK_PNG).decode()}" '
     'width="40" height="40" alt="">'
 )
 
@@ -38,7 +38,7 @@ with center:
                 st.warning("E-posta gönderimi yapılandırılmadığı için şu an giriş yapılamıyor.")
 
             with st.form("request_code", border=False):
-                email = st.text_input("E-posta adresi", placeholder="ad.soyad@ornek.com", autocomplete="email")
+                email = st.text_input("E-posta adresi", placeholder="gencmmgsube@gmail.com", autocomplete="email")
                 if st.form_submit_button("Giriş kodu gönder", type="primary", width="stretch"):
                     with st.spinner("Kod gönderiliyor..."):
                         ok, message = request_login_code(email)
